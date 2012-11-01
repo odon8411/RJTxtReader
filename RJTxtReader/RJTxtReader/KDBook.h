@@ -38,5 +38,6 @@
 - (unsigned long long)offsetWithPage:(NSUInteger)pageIndex;
 - (id)initWithBook:(NSInteger) newBookIndex;
 - (void) createBook;
+- (NSInteger)getPageCount;
 
 @end

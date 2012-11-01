@@ -170,7 +170,10 @@
 
 
 #pragma mark lll
-
+- (NSInteger)getPageCount
+{
+    return [pageIndexArray count];
+}
 - (NSString *)stringWithPage:(NSUInteger)pageIndex{
 	if (pageIndex > [pageIndexArray count]) {
         //pageIndex = 1;

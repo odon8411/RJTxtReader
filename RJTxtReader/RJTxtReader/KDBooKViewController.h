@@ -20,6 +20,8 @@
     CGFloat currentLight;
     
     BOOL isShowIndex;
+    UIView *pageNumberView ;
+    UILabel *pageNumberLabel;
 }
 
 @property (nonatomic, readwrite)NSUInteger bookIndex;
@@ -30,6 +32,7 @@
 -(void) doBookmark;
 -(void) savePlace:(NSUInteger) nPage;
 -(void) showPage;
+- (void)updatePageNumberText:(NSInteger)page;
 
 //toolbar的响应事件
 -(void) doPre;
@@ -37,5 +40,6 @@
 -(void) doColor;
 -(void) doNext;
 -(void) doIndex;
+
 
 @end

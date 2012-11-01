@@ -116,11 +116,13 @@
 -(void) ShowHideNav
 {
     isNavHideflage=!isNavHideflage;
+    
     [UIView beginAnimations:nil context:nil];
     [UIView setAnimationDuration:0.3];
     [UIView setAnimationTransition:UIViewAnimationTransitionNone forView:self.view cache:YES];
     [self.navigationController setNavigationBarHidden:isNavHideflage animated:TRUE];
     [self.navigationController setToolbarHidden:isNavHideflage animated:TRUE];
+    pageNumberView.hidden = isNavHideflage;
     [UIView commitAnimations];
     
 }
@@ -213,6 +215,25 @@
     [alertView release];
     return;
 }
+- (void)updatePageNumberText:(NSInteger)page
+{
+#ifdef DEBUGX
+	NSLog(@"%s", __FUNCTION__);
+#endif
+    
+	if (page != pageNumberLabel.tag) // Only if page number changed
+	{
+		NSInteger pages = [mBook getPageCount]; // Total pages
+        
+		NSString *format = NSLocalizedString(@"%d of %d", @"format"); // Format
+        
+		NSString *number = [NSString stringWithFormat:format, page, pages]; // Text
+        
+		pageNumberLabel.text = number; // Update the page number label text
+        
+		pageNumberLabel.tag = page; // Update the last page number tag
+	}
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -270,7 +291,48 @@
     mBook.delegate = self;
 	mBook.pageSize = CGSizeMake(bookLabel.frame.size.width-20, bookLabel.frame.size.height-20);//bookLabel.frame.size;
 	mBook.textFont = [UIFont systemFontOfSize:18];//bookLabel.font;
-
+    
+#define PAGE_NUMBER_WIDTH 96.0f
+#define PAGE_NUMBER_HEIGHT 30.0f
+#define PAGE_NUMBER_SPACE 40.0f
+    
+    
+    CGFloat numberY = (rect.size.height-40 - (PAGE_NUMBER_HEIGHT + PAGE_NUMBER_SPACE));
+    CGFloat numberX = ((self.view.bounds.size.width - PAGE_NUMBER_WIDTH) / 2.0f);
+    CGRect numberRect = CGRectMake(numberX, numberY, PAGE_NUMBER_WIDTH, PAGE_NUMBER_HEIGHT);
+    
+    pageNumberView = [[UIView alloc] initWithFrame:numberRect]; // Page numbers view
+    
+    pageNumberView.autoresizesSubviews = NO;
+    pageNumberView.userInteractionEnabled = NO;
+    pageNumberView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+    pageNumberView.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.4f];
+    
+    pageNumberView.layer.cornerRadius = 4.0f;
+    pageNumberView.layer.shadowOffset = CGSizeMake(0.0f, 0.0f);
+    pageNumberView.layer.shadowColor = [UIColor colorWithWhite:0.0f alpha:0.6f].CGColor;
+    pageNumberView.layer.shadowPath = [UIBezierPath bezierPathWithRect:pageNumberView.bounds].CGPath;
+    pageNumberView.layer.shadowRadius = 2.0f; pageNumberView.layer.shadowOpacity = 1.0f;
+    
+    CGRect textRect = CGRectInset(pageNumberView.bounds, 4.0f, 2.0f); // Inset the text a bit
+    
+    pageNumberLabel = [[UILabel alloc] initWithFrame:textRect]; // Page numbers label
+    
+    pageNumberLabel.autoresizesSubviews = NO;
+    pageNumberLabel.autoresizingMask = UIViewAutoresizingNone;
+    pageNumberLabel.textAlignment = UITextAlignmentCenter;
+    pageNumberLabel.backgroundColor = [UIColor clearColor];
+    pageNumberLabel.textColor = [UIColor whiteColor];
+    pageNumberLabel.font = [UIFont systemFontOfSize:16.0f];
+    pageNumberLabel.shadowOffset = CGSizeMake(0.0f, 1.0f);
+    pageNumberLabel.shadowColor = [UIColor blackColor];
+    pageNumberLabel.adjustsFontSizeToFitWidth = YES;
+    pageNumberLabel.minimumFontSize = 12.0f;
+    
+    [pageNumberView addSubview:pageNumberLabel]; // Add label view
+    [self.view addSubview:pageNumberView]; // Add page numbers display view
+    [self updatePageNumberText:1];
+    pageNumberView.hidden = isNavHideflage;
 	
 	UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(10, rect.size.height-40, rect.size.width-20, 20)];
 	slider.maximumValue = rect.size.width-20;
@@ -293,6 +355,7 @@
         bookSlider.value = pageIndex;
         NSString* string = [mBook stringWithPage:pageIndex];
         bookLabel.text = string;
+        [self updatePageNumberText:pageIndex];
         [self exchangeAnimate:1];
         [self savePlace:pageIndex];
         return ;
@@ -305,6 +368,7 @@
         bookSlider.value = pageIndex;
         NSString* string = [mBook stringWithPage:pageIndex];
         bookLabel.text = string;
+        [self updatePageNumberText:pageIndex];
         [self exchangeAnimate:0];
         [self savePlace:pageIndex];
         return ;
@@ -361,6 +425,7 @@
         bookSlider.value = pageIndex;
         NSString* string = [mBook stringWithPage:pageIndex];
         bookLabel.text = string;
+        [self updatePageNumberText:pageIndex];
         [self exchangeAnimate:0];
         [self savePlace:pageIndex];
         return ;
@@ -400,6 +465,8 @@
 	[mBook release];
 	mBook = nil;
 	[bookLabel release];
+    [pageNumberView release];
+    [pageNumberLabel release];
 	[[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(showPage) object:nil];
     [super dealloc];
 }
@@ -421,6 +488,7 @@
         {
             NSLog(@"show text");
             bookLabel.text = string;
+            //[self updatePageNumberText:pageIndex];
         }
         else
         {
@@ -443,6 +511,7 @@
 - (void)bookDidRead:(NSUInteger)size{
 	bookSlider.maximumValue = size;
 	bookSlider.value = pageIndex;
+    [self updatePageNumberText:pageIndex];
 }
 
 
